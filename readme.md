@@ -1,4 +1,4 @@
-# 🏠 Smart Student Rental Platform  
+# 🏠 Smart Student Housing Discovery Platform  
 ### Priority-Based Swipe Recommendation System (PWA)
 
 ---
