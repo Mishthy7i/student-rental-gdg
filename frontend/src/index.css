@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: theme('colors.slate.50');
+    color: theme('colors.slate.900');
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+}
+.chat-overlay {
+  z-index: 100 !important;
+  background-color: #ffffff;
+  position: fixed;
+  inset: 0;
+}
+
+
+.chat-header {
+
+  padding-top: env(safe-area-inset-top, 40px); 
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.contact-name {
+  color: #0f172a;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-style: italic; 
+}
+
+
+.chat-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
