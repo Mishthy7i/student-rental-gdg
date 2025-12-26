@@ -16,6 +16,7 @@
     "@mui/material": "^7.3.6",
     "@tailwindcss/postcss": "^4.1.18",
     "canvas-confetti": "^1.9.4",
+    "firebase": "^12.7.0",
     "framer-motion": "^12.23.26",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",

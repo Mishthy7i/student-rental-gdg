@@ -1,10 +1,41 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
 from app.models.user import UserOnboard
 from app.services.firebase import db
+from app.dependencies.auth import get_current_user
 
 router = APIRouter(prefix="/onboard", tags=["Onboarding"])
 
 @router.post("/")
-def onboard_user(data: UserOnboard):
-    db.collection("users").document(data.user_id).set(data.dict())
-    return {"message": "User onboarded successfully"}
+def onboard_user(user_data: UserOnboard, current_user=Depends(get_current_user)):
+    try:
+        user_id = current_user["uid"]
+        
+        # Check if user is already onboarded
+        user_doc = db.collection("users").document(user_id).get()
+        if user_doc.exists:
+            raise HTTPException(status_code=400, detail="User already onboarded")
+        
+        # Store user preferences
+        user_dict = user_data.dict()
+        user_dict["user_id"] = user_id
+        user_dict["email"] = current_user.get("email")
+        
+        db.collection("users").document(user_id).set(user_dict)
+        
+        return {"message": "User onboarded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/status")
+def get_onboard_status(current_user=Depends(get_current_user)):
+    try:
+        user_id = current_user["uid"]
+        
+        user_doc = db.collection("users").document(user_id).get()
+        
+        return {
+            "is_onboarded": user_doc.exists,
+            "user_data": user_doc.to_dict() if user_doc.exists else None
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

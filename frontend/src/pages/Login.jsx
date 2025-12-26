@@ -1,21 +1,68 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, Container, TextField, Divider, IconButton, Stack, InputAdornment } from '@mui/material';
+import { Box, Button, Typography, Container, TextField, Divider, IconButton, Stack, InputAdornment, Alert } from '@mui/material';
 import { Google as GoogleIcon, ArrowBackIosNew as ArrowBackIcon, MailOutline, LockOutlined, PersonOutline } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../firebase';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { loginWithGoogle, user } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
-
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const intendedRole = location.state?.role || 'student';
 
-  const handleAuth = () => {
-    login(intendedRole);
+  // Redirect if already logged in
+  React.useEffect(() => {
+    if (user) {
+      navigate('/home');
+    }
+  }, [user, navigate]);
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await loginWithGoogle();
+      navigate('/home');
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailAuth = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      if (isSignUp) {
+        // Create account
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        // Update profile with display name
+        await updateProfile(result.user, {
+          displayName: fullName
+        });
+      } else {
+        // Sign in
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      navigate('/home');
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -49,13 +96,20 @@ const Login = () => {
         </Typography>
       </Box>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       <Stack spacing={2.5}>
         
         <Button
           fullWidth
           variant="contained"
           startIcon={<GoogleIcon />}
-          onClick={handleAuth}
+          onClick={handleGoogleAuth}
+          disabled={loading}
           sx={{
             py: 2,
             borderRadius: 4,
@@ -85,55 +139,68 @@ const Login = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <Stack spacing={2}>
-              {isSignUp && (
+            <form onSubmit={handleEmailAuth}>
+              <Stack spacing={2}>
+                {isSignUp && (
+                  <TextField 
+                    fullWidth 
+                    placeholder="Full Name" 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    InputProps={{
+                      startAdornment: <InputAdornment position="start"><PersonOutline sx={{ color: 'text.disabled' }} /></InputAdornment>,
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50', border: 'none' } }} 
+                  />
+                )}
+                
                 <TextField 
                   fullWidth 
-                  placeholder="Full Name" 
+                  type="email"
+                  placeholder="College Email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><PersonOutline sx={{ color: 'text.disabled' }} /></InputAdornment>,
+                    startAdornment: <InputAdornment position="start"><MailOutline sx={{ color: 'text.disabled' }} /></InputAdornment>,
                   }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50', border: 'none' } }} 
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50' } }} 
                 />
-              )}
-              
-              <TextField 
-                fullWidth 
-                placeholder="College Email" 
-                InputProps={{
-                  startAdornment: <InputAdornment position="start"><MailOutline sx={{ color: 'text.disabled' }} /></InputAdornment>,
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50' } }} 
-              />
-              
-              <TextField 
-                fullWidth 
-                placeholder="Password" 
-                type="password"
-                InputProps={{
-                  startAdornment: <InputAdornment position="start"><LockOutlined sx={{ color: 'text.disabled' }} /></InputAdornment>,
-                }}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50' } }} 
-              />
+                
+                <TextField 
+                  fullWidth 
+                  placeholder="Password" 
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start"><LockOutlined sx={{ color: 'text.disabled' }} /></InputAdornment>,
+                  }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4, bgcolor: 'grey.50' } }} 
+                />
 
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                onClick={handleAuth}
-                sx={{ 
-                  py: 2, 
-                  borderRadius: 4, 
-                  textTransform: 'none', 
-                  fontWeight: 900, 
-                  fontSize: '1rem',
-                  boxShadow: '0 12px 24px rgba(99, 102, 241, 0.25)',
-                  mt: 1
-                }}
-              >
-                {isSignUp ? "Create My Account" : "Sign In"}
-              </Button>
-            </Stack>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="large"
+                  type="submit"
+                  disabled={loading}
+                  sx={{ 
+                    py: 2, 
+                    borderRadius: 4, 
+                    textTransform: 'none', 
+                    fontWeight: 900, 
+                    fontSize: '1rem',
+                    boxShadow: '0 12px 24px rgba(99, 102, 241, 0.25)',
+                    mt: 1
+                  }}
+                >
+                  {loading ? 'Please wait...' : (isSignUp ? "Create My Account" : "Sign In")}
+                </Button>
+              </Stack>
+            </form>
           </motion.div>
         </AnimatePresence>
 

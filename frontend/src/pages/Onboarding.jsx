@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Box, Container, Typography, Button, LinearProgress, 
-  Stack, TextField, Chip, Slider, Card, CardActionArea, Grid 
+  Stack, TextField, Chip, Slider, Card, CardActionArea, Grid, Alert 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Reorder, motion, AnimatePresence } from "framer-motion"; 
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useApp } from '../context/AppContext'; // Import your context
+import { useAuth } from '../context/AuthContext';
+import { apiClient } from '../utils/api';
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { setUserData } = useApp(); // Access context to save data
+  const { user, completeOnboarding } = useAuth();
   const [step, setStep] = useState(1);
   const [matchingProgress, setMatchingProgress] = useState(0);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   
   const [formData, setFormData] = useState({
     college: '',
@@ -28,6 +31,35 @@ const Onboarding = () => {
     ]
   });
 
+  // Function to submit onboarding data to backend
+  const submitOnboarding = async () => {
+    if (!user) return;
+    
+    setSubmitting(true);
+    setError('');
+    
+    try {
+      const onboardingData = {
+        college: formData.college,
+        min_budget: formData.budget[0],
+        max_budget: formData.budget[1],
+        preferred_room_types: formData.roomTypes,
+        priorities: formData.priorities.map(p => ({ id: p.id, label: p.label })),
+        role: 'student' // Default role for onboarding users
+      };
+
+      await apiClient.onboardUser(onboardingData);
+      completeOnboarding();
+      
+      setTimeout(() => navigate('/home'), 800);
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      setError(error.message || 'Failed to complete onboarding');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Step 5: The "Smart" Calculation Simulation
   useEffect(() => {
     if (step === 5) {
@@ -35,19 +67,7 @@ const Onboarding = () => {
         setMatchingProgress((prev) => {
           if (prev >= 100) {
             clearInterval(interval);
-            
-            // SAVE TO CONTEXT: This triggers the recommendation engine
-            setUserData(prevUser => ({
-              ...prevUser,
-              preferences: {
-                college: formData.college,
-                budget: formData.budget[1], // Use max budget for calculation
-                preferredType: formData.roomTypes[0] || 'Single Room',
-                priorities: formData.priorities
-              }
-            }));
-
-            setTimeout(() => navigate('/home'), 800);
+            submitOnboarding();
             return 100;
           }
           return prev + 2;
@@ -55,7 +75,7 @@ const Onboarding = () => {
       }, 40);
       return () => clearInterval(interval);
     }
-  }, [step, navigate, formData, setUserData]);
+  }, [step]);
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
@@ -219,6 +239,12 @@ const Onboarding = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#fcfdfe', pb: 12 }}>
       <Container maxWidth="xs" sx={{ pt: 6 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
         {step < 5 && (
           <Box sx={{ mb: 6 }}>
             <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
   User, ShieldCheck, Bell, HelpCircle, LogOut, 
   Settings, ChevronRight, GripVertical, Plus, CreditCard,
@@ -8,18 +8,26 @@ import {
 } from 'lucide-react';
 
 const Profile = () => {
-  const { userPriorities, userData } = useApp();
   const { logout, user } = useAuth();
-  
+  const navigate = useNavigate();
   
   const isLandlord = user?.role === 'landlord';
   
   const [notifications, setNotifications] = useState(true);
   const [incognito, setIncognito] = useState(false);
 
-  const initials = userData?.name
-    ? userData.name.split(' ').map(n => n[0]).join('').toUpperCase()
-    : "US";
+  const initials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() || "US";
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-32 font-sans antialiased text-slate-900">
@@ -42,7 +50,7 @@ const Profile = () => {
         </div>
         
         <div className="mt-6">
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">{userData.name}</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">{user?.name || 'User'}</h2>
           <div className="flex items-center gap-2 mt-2">
             <div className={`px-2.5 py-0.5 rounded-md border ${isLandlord ? 'bg-amber-50 border-amber-100 text-amber-700' : 'bg-emerald-50 border-emerald-100 text-emerald-600'}`}>
               <p className="text-[10px] font-black uppercase tracking-widest">
@@ -165,7 +173,7 @@ const Profile = () => {
           </div>
 
           <button 
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full mt-6 group flex items-center justify-between p-5 rounded-2xl bg-white border border-rose-100 shadow-sm active:scale-95 transition-all hover:bg-rose-50"
           >
             <div className="flex items-center gap-4">

@@ -1,8 +1,11 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class UserOnboard(BaseModel):
-    user_id: str
-    budget: int
-    max_distance_km: float
-    priorities: List[str]  # e.g. ["budget", "distance", "furnished"]
+    college: str
+    min_budget: int
+    max_budget: int
+    preferred_room_types: List[str] = []
+    priorities: List[dict] = []  # [{'id': 'dist', 'label': 'Distance to college'}]
+    role: Optional[str] = 'student'
+    max_distance_km: Optional[float] = 10.0  # Default distance
