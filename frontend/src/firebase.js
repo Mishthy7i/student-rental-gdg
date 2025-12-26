@@ -4,14 +4,15 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAQDMBKHvYF1HNvraBPgJv4m8NxbCfPCM8",
-  authDomain: "student-rental-gdg.firebaseapp.com",
-  projectId: "student-rental-gdg",
-  storageBucket: "student-rental-gdg.firebasestorage.app",
-  messagingSenderId: "553246990180",
-  appId: "1:553246990180:web:aadd0dd3eb2f385f7de471",
-  measurementId: "G-LQ5041S5RZ"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
+
 
 
 const app = initializeApp(firebaseConfig);
