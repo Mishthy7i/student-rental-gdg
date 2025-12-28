@@ -106,8 +106,10 @@ const LandlordOnboarding = () => {
     setIsSubmitting(true);
 
     try {
-      // First, onboard the landlord
-      await completeOnboarding({});
+      // Only onboard the landlord if they haven't been onboarded yet
+      if (!user.is_onboarded) {
+        await completeOnboarding({});
+      }
 
       // Generate room ID first (before uploading images)
       const roomId = doc(collection(db, 'rooms')).id;
@@ -198,7 +200,21 @@ const LandlordOnboarding = () => {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
       <Container maxWidth="md">
         {/* Header */}
-        <Box textAlign="center" sx={{ mb: 4 }}>
+        <Box textAlign="center" sx={{ mb: 4, position: 'relative' }}>
+          {user?.is_onboarded && (
+            <Button
+              variant="outlined"
+              onClick={() => navigate('/home')}
+              sx={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                textTransform: 'none'
+              }}
+            >
+              ← Back to Home
+            </Button>
+          )}
           <Box
             sx={{
               display: 'inline-flex',
@@ -218,7 +234,7 @@ const LandlordOnboarding = () => {
             </Typography>
           </Box>
           <Typography variant="h3" sx={{ fontWeight: 900, mb: 1 }}>
-            List Your First Property
+            {user?.is_onboarded ? 'Add New Property' : 'List Your First Property'}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Let's get your property in front of thousands of students

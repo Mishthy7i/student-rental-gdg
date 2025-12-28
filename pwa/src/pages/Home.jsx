@@ -186,15 +186,18 @@ const Home = () => {
 
   const handleOnboardAgain = async () => {
     try {
-      // Reset onboarding status
+      // Reset onboarding status in Firestore
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, { is_onboarded: false }, { merge: true });
-      showToast('Onboarding reset. Please complete onboarding again.', 'info');
+
+      showToast('Redirecting to onboarding...', 'info');
       setShowOnboardDialog(false);
 
-      // Navigate to onboarding
+      // Navigate to onboarding - the page will reload and fetch updated user data
       const onboardingPath = user.role === 'landlord' ? '/onboarding/landlord' : '/onboarding/student';
-      navigate(onboardingPath);
+
+      // Force a page reload to ensure user state is refreshed
+      window.location.href = onboardingPath;
     } catch (error) {
       console.error('Error resetting onboarding:', error);
       showToast('Failed to reset onboarding', 'error');

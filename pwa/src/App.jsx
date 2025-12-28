@@ -36,8 +36,9 @@ function App() {
     if (!user) {
       return <Navigate to="/login" replace />;
     }
-    // If already onboarded, redirect to home
-    if (user.is_onboarded) {
+    // Allow landlords to access onboarding even if already onboarded (for adding new properties)
+    // Students who are already onboarded should go to home
+    if (user.is_onboarded && user.role === 'student') {
       return <Navigate to="/home" replace />;
     }
     return children;
