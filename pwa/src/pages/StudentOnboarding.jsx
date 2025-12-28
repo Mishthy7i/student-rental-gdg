@@ -17,15 +17,85 @@ import {
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
+  ArrowForward as ArrowForwardIcon,
   CheckCircle as CheckCircleIcon,
   School as SchoolIcon,
   CurrencyRupee as RupeeIcon,
   Home as HomeIcon,
-  Sort as SortIcon
+  Sort as SortIcon,
+  DragIndicator as DragIndicatorIcon
 } from '@mui/icons-material';
+import { Reorder, useDragControls } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+
+// Draggable priority item component
+const PriorityItem = ({ item, index }) => {
+  const dragControls = useDragControls();
+
+  return (
+    <Reorder.Item 
+      value={item} 
+      dragListener={false}
+      dragControls={dragControls}
+      style={{ 
+        listStyle: 'none',
+        cursor: 'grab'
+      }}
+      whileDrag={{ 
+        scale: 1.03, 
+        boxShadow: '0 10px 30px rgba(79, 70, 229, 0.2)',
+        cursor: 'grabbing'
+      }}
+    >
+      <Card
+        variant="outlined"
+        sx={{
+          p: 2, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderRadius: '16px', 
+          border: '1px solid #E2E8F0',
+          bgcolor: 'white',
+          transition: 'border-color 0.2s ease',
+          '&:hover': { borderColor: '#4F46E5' }
+        }}
+      >
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
+          <Box 
+            onPointerDown={(e) => dragControls.start(e)}
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'grab',
+              color: '#94A3B8',
+              touchAction: 'none',
+              '&:hover': { color: '#4F46E5' },
+              '&:active': { cursor: 'grabbing' }
+            }}
+          >
+            <DragIndicatorIcon />
+          </Box>
+          <Box sx={{ fontSize: '1.5rem', bgcolor: '#F1F5F9', p: 1, borderRadius: '12px' }}>{item.icon}</Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
+            {item.label}
+          </Typography>
+        </Stack>
+        <Chip 
+          label={`#${index + 1}`} 
+          size="small" 
+          sx={{ 
+            fontWeight: 700, 
+            bgcolor: index === 0 ? '#4F46E5' : '#F1F5F9',
+            color: index === 0 ? 'white' : '#64748B'
+          }} 
+        />
+      </Card>
+    </Reorder.Item>
+  );
+};
 
 const StudentOnboarding = () => {
   const navigate = useNavigate();
@@ -283,34 +353,20 @@ const StudentOnboarding = () => {
                 What matters most?
               </Typography>
               <Typography variant="body1" sx={{ color: '#64748B' }}>
-                We'll prioritize rooms based on what you select.
+                Drag to reorder your priorities.
               </Typography>
             </Box>
 
-            <Stack spacing={2}>
+            <Reorder.Group 
+              axis="y" 
+              values={formData.priorities} 
+              onReorder={(newOrder) => setFormData({ ...formData, priorities: newOrder })}
+              style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
               {formData.priorities.map((item, index) => (
-                <Grow key={item.id} in={true} timeout={300 + (index * 100)}>
-                  <Card
-                    variant="outlined"
-                    sx={{
-                      p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      cursor: 'grab', borderRadius: '16px', border: '1px solid #E2E8F0',
-                      bgcolor: 'white',
-                      transition: 'all 0.2s ease',
-                      '&:hover': { borderColor: '#94A3B8', transform: 'translateY(-2px)' }
-                    }}
-                  >
-                    <Stack direction="row" spacing={2} alignItems="center">
-                      <Box sx={{ fontSize: '1.5rem', bgcolor: '#F1F5F9', p: 1, borderRadius: '12px' }}>{item.icon}</Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1E293B' }}>
-                        {item.label}
-                      </Typography>
-                    </Stack>
-                    <Chip label={`#${index + 1}`} size="small" sx={{ fontWeight: 700, bgcolor: '#F1F5F9' }} />
-                  </Card>
-                </Grow>
+                <PriorityItem key={item.id} item={item} index={index} />
               ))}
-            </Stack>
+            </Reorder.Group>
           </Box>
         );
 

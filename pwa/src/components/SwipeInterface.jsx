@@ -302,7 +302,9 @@ const SwipeInterface = ({ rooms, onLike, onDislike, onOpenDetails, onRefresh }) 
                       variant="h3"
                       sx={{
                         fontWeight: 800,
-                        lineHeight: 1
+                        lineHeight: 1,
+                        color: '#fff',
+                        textShadow: '0px 2px 10px rgba(49, 47, 129, 0.4), 0px 1.5px 14px rgba(0,0,0,0.25)'
                       }}
                     >
                       ₹{currentRoom.price?.toLocaleString()}
@@ -311,6 +313,9 @@ const SwipeInterface = ({ rooms, onLike, onDislike, onOpenDetails, onRefresh }) 
                       variant="body2"
                       sx={{
                         fontWeight: 600,
+                        lineHeight: 1,
+                        color: '#fff',
+                        textShadow: '0px 2px 10px rgba(49, 47, 129, 0.4), 0px 1.5px 14px rgba(0,0,0,0.25)',
                         opacity: 0.9
                       }}
                     >
